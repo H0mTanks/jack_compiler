@@ -204,36 +204,137 @@ u64 hash_bytes(const char* buf, size_t len) {
     return x;
 }
 
+typedef struct Map {
+    void** keys;
+    void** vals;
+    size_t len;
+    size_t cap;
+} Map;
+
+Internal void* map_get(Map* map, void* key) {
+    if (map->len == 0) {
+        return NULL;
+    }
+    assert(IS_POW2(map->cap));
+
+    size_t i = (size_t)hash_ptr(key);
+    assert(map->len < map->cap);
+
+    while (1) {
+        i &= map->cap - 1;
+        if (map->keys[i] == key) {
+            return map->vals[i];
+        }
+        else if (!map->keys[i]) {
+            return NULL;
+        }
+        i++;
+    }
+
+    return NULL;
+}
+
+Internal void map_put(Map* map, void* key, void* val);
+
+Internal void map_grow(Map* map, size_t new_cap) {
+    new_cap = MAX(16, new_cap);
+    Map new_map = {
+        .keys = xcalloc(new_cap, sizeof(void*)),
+        .vals = xmalloc(new_cap * sizeof(void*)),
+        .cap = new_cap,
+    };
+
+    for (size_t i = 0; i < map->cap; i++) {
+        if (map->keys[i]) {
+            map_put(&new_map, map->keys[i], map->vals[i]);
+        }
+    }
+
+    free(map->keys);
+    free(map->vals);
+    *map = new_map;
+}
+
+Internal void map_put(Map* map, void* key, void* val) {
+    assert(key);
+    assert(val);
+
+    if (2 * map->len >= map->cap) {
+        map_grow(map, 2 * map->cap);
+    }
+
+    assert(2 * map->len < map->cap);
+    assert(IS_POW2(map->cap));
+
+    size_t i = (size_t)hash_ptr(key);
+    while (1) {
+        i &= map->cap - 1;
+        if (!map->keys[i]) {
+            map->len++;
+            map->keys[i] = key;
+            map->vals[i] = val;
+            return;
+        }
+        else if (map->keys[i] == key) {
+            map->vals[i] = val;
+            return;
+        }
+        i++;
+    }
+}
+
+Internal void map_tests(void) {
+    Map map = { 0 };
+    int n = 1024;
+    for (size_t i = 1; i < n; i++) {
+        map_put(&map, (void*)i, (void*)(i + 1));
+    }
+    for (size_t i = 1; i < n; i++) {
+        void* val = map_get(&map, (void*)i);
+        assert(val == (void*)(i + 1));
+    }
+}
+
 //*String interning
 //*A string consists of an Intern struct which consists of it's length and pointer to the string.
 typedef struct Intern {
     size_t len;
-    const char* str;
+    struct Intern* next;
+    char str[];
 } Intern;
 
 //*The memory for all the strings
 Arena intern_arena;
-//*pointer to the structs which hold pointers to the strings, it is a stretchy buffer
-Intern* interns;
+Map interns;
 
 //*checks if the new string is part of the existing list of strings in the intern table
 //*if it already exists, return a pointer to the underlying char buffer
 //*if it does not exist, allocate memory for it and add it to the intern table.
 Internal const char* str_intern_range(const char* start, const char* end) {
     size_t len = end - start;
+    u64 hash = hash_bytes(start, len);
+    //*the key is a pointer from the hash of string
+    void* key = (void*)(uintptr_t)(hash ? hash : 1);
+    Intern* intern = map_get(&interns, key);
 
-    for (Intern* it = interns; it != BUF_END(interns); it++) {
+    //*find correct str in case key collision, if loop completes, means the string
+    //*being interned is new
+    for (Intern* it = intern; it; it = it->next) {
         if (it->len == len && strncmp(it->str, start, len) == 0) {
             return it->str;
         }
     }
 
-    char* str = arena_alloc(&intern_arena, len + 1);
-    memcpy(str, start, len);
-    str[len] = 0;
-    BUF_PUSH(interns, (Intern) { len, str });
+    Intern* new_intern = arena_alloc(&intern_arena, offsetof(Intern, str) + len + 1);
+    new_intern->len = len;
+    //*set the head of the existing linked list as new_intern and set old head as next
+    new_intern->next = intern;
 
-    return str;
+    memcpy(new_intern->str, start, len);
+    new_intern->str[len] = 0;
+    map_put(&interns, key, new_intern);
+
+    return new_intern->str;
 }
 
 //*assumes null terminated strings because of strlen, wrapper for str_intern_range
@@ -266,4 +367,5 @@ Internal void intern_tests() {
 Internal void common_tests() {
     buffer_tests();
     intern_tests();
+    map_tests();
 }
