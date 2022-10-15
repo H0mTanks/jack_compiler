@@ -22,7 +22,7 @@ C_FLAGS = /D_CRT_SECURE_NO_WARNINGS \
   /WX \
   /W4 \
   /Od \
-  /wd4505 /wd4200 /wd4201 /wd4100 /wd4189 /wd4312 \
+  /wd4505 /wd4200 /wd4201 /wd4100 /wd4189 /wd4312 /wd5105\
   /std:c17 \
   /Fd$(DIR_BIN)\ \
   /I$(DIR_INCLUDE_VENDOR_TYPES)\ \

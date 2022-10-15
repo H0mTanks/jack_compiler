@@ -80,6 +80,69 @@ Internal char* strf(const char* fmt, ...) {
     return str;
 }
 
+Internal char* read_file(const char* path) {
+    FILE* file = fopen(path, "rb");
+    if (!file) {
+        fatal("Could not find file: %s", path);
+    }
+
+    fseek(file, 0, SEEK_END);
+    long len = ftell(file);
+
+    fseek(file, 0, SEEK_SET);
+
+    char* buf = xmalloc(len + 1);
+    if (len && fread(buf, len, 1, file) != 1) {
+        fclose(file);
+        free(buf);
+        fatal("Error reading file: %s", path);
+    }
+
+    fclose(file);
+    buf[len] = 0;
+
+    return buf;
+}
+
+Internal bool write_file(const char* path, const char* buf, size_t len) {
+    FILE* file = fopen(path, "w");
+    if (!file) {
+        return false;
+    }
+    size_t n = fwrite(buf, len, 1, file);
+    fclose(file);
+    return n == 1;
+}
+
+Internal const char* get_extension(const char* path) {
+    const char* ext = NULL;
+    while (*path) {
+        if (*path == '.') {
+            ext = path + 1;
+        }
+        path++;
+    }
+
+    return ext;
+}
+
+Internal bool check_jack_extension(const char* ext) {
+    if (!ext || *ext == 0) {
+        return false;
+    }
+
+    const char* ext_chars = "jack";
+    while (*ext && *ext_chars) {
+        if (*ext != *ext_chars) {
+            return false;
+        }
+        ext++;
+        ext_chars++;
+    }
+
+    return true;
+}
+
 typedef struct BufHdr {
     size_t len;
     size_t cap;
@@ -98,6 +161,7 @@ typedef struct BufHdr {
 #define BUF_FREE(b) ((b) ? (free(_BUF_HDR(b)), (b) = NULL) : 0)
 #define BUF_FIT(b, n) ((n) <= BUF_CAP(b) ? 0 : ((b) = _buf_grow((b), (n), sizeof(*(b)))))
 #define BUF_PUSH(b, ...) (BUF_FIT((b), 1 + BUF_LEN(b)), (b)[_BUF_HDR(b)->len++] = (__VA_ARGS__))
+#define BUF_PRINTF(b, ...) ((b) = _buf_printf((b), __VA_ARGS__))
 #define BUF_CLEAR(b) ((b) ? _BUF_HDR(b)->len = 0 : 0)
 
 Internal void* _buf_grow(const void* buf, size_t new_len, size_t elem_size) {
@@ -118,6 +182,27 @@ Internal void* _buf_grow(const void* buf, size_t new_len, size_t elem_size) {
 
     new_hdr->cap = new_cap;
     return new_hdr->buf;
+}
+
+Internal char* _buf_printf(char* buf, const char* fmt, ...) {
+    va_list(args);
+    va_start(args, fmt);
+
+    size_t cap = BUF_CAP(buf) - BUF_LEN(buf);
+    size_t n = 1 + vsnprintf(BUF_END(buf), cap, fmt, args);
+    va_end(args);
+
+    if (n > cap) {
+        BUF_FIT(buf, n + BUF_LEN(buf));
+        va_start(args, fmt);
+        size_t new_cap = BUF_CAP(buf) - BUF_LEN(buf);
+        n = 1 + vsnprintf(BUF_END(buf), new_cap, fmt, args);
+        assert(n <= new_cap);
+        va_end(args);
+    }
+
+    _BUF_HDR(buf)->len += n - 1;
+    return buf;
 }
 
 Internal void buffer_tests() {
@@ -141,6 +226,12 @@ Internal void buffer_tests() {
     BUF_FREE(buf);
     assert(buf == NULL);
     assert(BUF_LEN(buf) == 0);
+
+    char* str = NULL;
+    BUF_PRINTF(str, "One: %d\n", 1);
+    assert(strcmp(str, "One: 1\n") == 0);
+    BUF_PRINTF(str, "Hex: 0x%x\n", 0x12345678);
+    assert(strcmp(str, "One: 1\nHex: 0x12345678\n") == 0);
 }
 
 //Arena allocator
@@ -151,7 +242,7 @@ typedef struct Arena {
 } Arena;
 
 #define ARENA_ALIGNMENT 8
-#define ARENA_BLOCK_SIZE 1024
+#define ARENA_BLOCK_SIZE 1024 * 1024
 
 Internal void arena_grow(Arena* arena, size_t min_size) {
     size_t size = ALIGN_UP(MAX(ARENA_BLOCK_SIZE, min_size), ARENA_ALIGNMENT);
@@ -183,6 +274,21 @@ Internal void arena_free(Arena* arena) {
 }
 
 //*Hash map
+
+//*usage example
+// Map test_map = { 0 };
+// i32 a = 56;
+// i32 b = 89;
+// u64 ha = hash_u64(a);
+// u64 hb = hash_u64(b);
+// void* ka = (void*)(uintptr_t)(ha ? ha : 1);
+// void* kb = (void*)(uintptr_t)(hb ? hb : 1);
+
+// map_put(&test_map, ka, &a);
+// map_put(&test_map, kb, &b);
+
+// i32* ia = map_get(&test_map, ka);
+// i32* ib = map_get(&test_map, kb);
 
 u64 hash_u64(u64 x) {
     x *= 0xff51afd7ed558ccd;
