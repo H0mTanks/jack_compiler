@@ -1,7 +1,9 @@
 // This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
-// File name: projects/09/Square/Square.jack
+// File name: projects/10/Square/Square.jack
+
+// (same as projects/09/Square/Square.jack)
 
 /** Implements a graphical square. */
 class Square {
@@ -19,27 +21,27 @@ class Square {
    }
 
    /** Disposes this square. */
-   method void dispose() {
+   method void dispose(void) {
       do Memory.deAlloc(this);
       return;
    }
 
    /** Draws the square on the screen. */
-   method void draw() {
+   method void draw(void) {
       do Screen.setColor(true);
       do Screen.drawRectangle(x, y, x + size, y + size);
       return;
    }
 
    /** Erases the square from the screen. */
-   method void erase() {
+   method void erase(void) {
       do Screen.setColor(false);
       do Screen.drawRectangle(x, y, x + size, y + size);
       return;
    }
 
     /** Increments the square size by 2 pixels. */
-   method void incSize() {
+   method void incSize(void) {
       if (((y + size) < 254) & ((x + size) < 510)) {
          do erase();
          let size = size + 2;
@@ -49,7 +51,7 @@ class Square {
    }
 
    /** Decrements the square size by 2 pixels. */
-   method void decSize() {
+   method void decSize(void) {
       if (size > 2) {
          do erase();
          let size = size - 2;
@@ -59,7 +61,7 @@ class Square {
    }
 
    /** Moves the square up by 2 pixels. */
-   method void moveUp() {
+   method void moveUp(void) {
       if (y > 1) {
          do Screen.setColor(false);
          do Screen.drawRectangle(x, (y + size) - 1, x + size, y + size);
@@ -71,7 +73,7 @@ class Square {
    }
 
    /** Moves the square down by 2 pixels. */
-   method void moveDown() {
+   method void moveDown(void) {
       if ((y + size) < 254) {
          do Screen.setColor(false);
          do Screen.drawRectangle(x, y, x + size, y + 1);
@@ -83,7 +85,7 @@ class Square {
    }
 
    /** Moves the square left by 2 pixels. */
-   method void moveLeft() {
+   method void moveLeft(void) {
       if (x > 1) {
          do Screen.setColor(false);
          do Screen.drawRectangle((x + size) - 1, y, x + size, y + size);
@@ -95,7 +97,7 @@ class Square {
    }
 
    /** Moves the square right by 2 pixels. */
-   method void moveRight() {
+   method void moveRight(void) {
       if ((x + size) < 510) {
          do Screen.setColor(false);
          do Screen.drawRectangle(x, y, x + 1, y + size);

@@ -43,25 +43,6 @@ Internal void fatal(const char* fmt, ...) {
     exit(1);
 }
 
-Internal void syntax_error(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf("Syntax Error: ");
-    vprintf(fmt, args);
-    printf("\n");
-    va_end(args);
-}
-
-Internal void fatal_syntax_error(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf("Syntax Error: ");
-    vprintf(fmt, args);
-    printf("\n");
-    va_end(args);
-    exit(1);
-}
-
 Internal void* memdup(void* src, size_t size) {
     void* dest = xmalloc(size);
     memcpy(dest, src, size);
@@ -205,7 +186,7 @@ Internal char* _buf_printf(char* buf, const char* fmt, ...) {
     return buf;
 }
 
-Internal void buffer_tests() {
+Internal void buffer_tests(void) {
     //* declares a buffer pointer arr and checks if it has no length, i.e 0 elements
     int* buf = NULL;
     assert(BUF_LEN(buf) == 0);
@@ -448,7 +429,7 @@ Internal const char* str_intern(const char* str) {
     return str_intern_range(str, str + strlen(str));
 }
 
-Internal void intern_tests() {
+Internal void intern_tests(void) {
     char a[] = "hello";
     //*equality by strcmp
     assert(strcmp(a, str_intern(a)) == 0);
@@ -470,7 +451,7 @@ Internal void intern_tests() {
     assert(str_intern(a) != str_intern(d));
 }
 
-Internal void common_tests() {
+Internal void common_tests(void) {
     buffer_tests();
     intern_tests();
     map_tests();

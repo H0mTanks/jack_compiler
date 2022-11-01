@@ -1,5 +1,5 @@
 #if _WIN32
-#include "dirent.h"
+#include "vendor/dirent.h"
 #else
 #include <dirent.h>
 #endif
@@ -15,11 +15,13 @@
 #include "lex.c"
 
 
-Internal void tests() {
+Internal void tests(void) {
     common_tests();
+    lex_tests();
+    printf("tests complete\n");
 }
 
-Internal int is_dir_error() {
+Internal int is_dir_error(void) {
     switch (errno) {
         case EACCES:
         case EBADF:
@@ -39,6 +41,8 @@ Internal int is_dir_error() {
 int main(int argc, char* argv[]) {
     printf("Starting compiler\n");
 
+    tests();
+
     const char* path = NULL;
     if (argc == 2) {
         path = argv[1];
@@ -49,8 +53,6 @@ int main(int argc, char* argv[]) {
     else {
         fatal("One argument expected");
     }
-
-    tests();
 
     DIR* dir = opendir(path);
 
@@ -78,8 +80,12 @@ int main(int argc, char* argv[]) {
             strcat(filepath, de->d_name);
             printf("filename: %s\n", filepath);
 
-            stream = read_file(filepath);
-            printf("%s\n", stream);
+            const char* filestream = read_file(filepath);
+            printf("%s\n", filestream);
+            init_stream(NULL, filestream);
+            while (!is_token_eof()) {
+                next_token();
+            }
         }
 
         if (!found_valid_jackfile) {
@@ -101,7 +107,9 @@ int main(int argc, char* argv[]) {
             fatal("File is not a .jack file");
         }
 
-        stream = read_file(path);
-        printf("%s", stream);
+        const char* filestream = read_file(path);
+        printf("%s", filestream);
+
+        //while (is_token_eof);
     }
 }
