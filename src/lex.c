@@ -163,6 +163,7 @@ typedef struct Token {
 Token token;
 const char* stream;
 const char* line_start;
+char* file_buf;
 
 void error(SrcPos pos, const char* fmt, ...) {
     va_list args;
@@ -530,3 +531,12 @@ Internal void lex_tests(void) {
 #undef assert_token_int
 #undef assert_token_str
 #undef assert_token_eof
+
+Internal void lex(const char* filestream) {
+    BUF_PRINTF(file_buf, "<tokens>\n");
+    init_stream(NULL, filestream);
+    while (!is_token_eof()) {
+        next_token();
+    }
+    BUF_PRINTF(file_buf, "</tokens>");
+}
