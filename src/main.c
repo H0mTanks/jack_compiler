@@ -73,20 +73,21 @@ int main(int argc, char* argv[]) {
             size_t filelen = strlen(de->d_name);
             size_t filepath_len = pathlen + 1 + filelen;
 
-            char* filepath = xcalloc(filepath_len + 1, sizeof(char));
-            strcpy(filepath, path);
+            char* filepath = NULL;
+            BUF_PRINTF(filepath, path);
             if (path[pathlen - 1] != '/') {
-                strcat(filepath, "/");
+                BUF_PRINTF(filepath, "/");
             }
 
             char* out_filepath = xcalloc(pathlen + 1 + (ext - de->d_name) + strlen(".xml") + 1, sizeof(char));
             strcpy(out_filepath, filepath);
 
-            strcat(filepath, de->d_name);
-            printf("filepath: %s\n", filepath);
+            BUF_PRINTF(filepath, de->d_name);
+            // printf("filepath: %s\n", filepath);
 
             const char* filestream = read_file(filepath);
             printf("%s\n", filestream);
+
             lex(filestream);
 
             //TODO: change output filename to `filenameT.xml`
@@ -94,10 +95,12 @@ int main(int argc, char* argv[]) {
             strncat(out_filepath, de->d_name, ext - de->d_name);
             strcat(out_filepath, "xml");
             printf("filename: %s\n", out_filepath);
+
             write_file(out_filepath, file_buf, BUF_LEN(file_buf));
 
             free(out_filepath);
-            free(filepath);
+            BUF_FREE(filepath);
+            BUF_FREE(file_buf);
         }
 
         if (!found_valid_jackfile) {
