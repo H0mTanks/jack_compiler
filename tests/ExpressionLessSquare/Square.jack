@@ -18,24 +18,24 @@ class Square {
       return x;
    }
 
-   method void dispose(void) {
+   method void dispose() {
       do Memory.deAlloc(this);
       return;
    }
 
-   method void draw(void) {
+   method void draw() {
       do Screen.setColor(x);
       do Screen.drawRectangle(x, y, x, y);
       return;
    }
 
-   method void erase(void) {
+   method void erase() {
       do Screen.setColor(x);
       do Screen.drawRectangle(x, y, x, y);
       return;
    }
 
-   method void incSize(void) {
+   method void incSize() {
       if (x) {
          do erase();
          let size = size;
@@ -44,7 +44,7 @@ class Square {
       return;
    }
 
-   method void decSize(void) {
+   method void decSize() {
       if (size) {
          do erase();
          let size = size;
@@ -53,7 +53,7 @@ class Square {
       return;
    }
 
-   method void moveUp(void) {
+   method void moveUp() {
       if (y) {
          do Screen.setColor(x);
          do Screen.drawRectangle(x, y, x, y);
@@ -64,7 +64,7 @@ class Square {
       return;
    }
 
-   method void moveDown(void) {
+   method void moveDown() {
       if (y) {
          do Screen.setColor(x);
          do Screen.drawRectangle(x, y, x, y);
@@ -75,7 +75,7 @@ class Square {
       return;
    }
 
-   method void moveLeft(void) {
+   method void moveLeft() {
       if (x) {
          do Screen.setColor(x);
          do Screen.drawRectangle(x, y, x, y);
@@ -86,7 +86,7 @@ class Square {
       return;
    }
 
-   method void moveRight(void) {
+   method void moveRight() {
       if (x) {
          do Screen.setColor(x);
          do Screen.drawRectangle(x, y, x, y);

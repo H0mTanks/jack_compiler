@@ -95,6 +95,18 @@ Internal bool write_file(const char* path, const char* buf, size_t len) {
     return n == 1;
 }
 
+Internal const char* str_char_lastfind(const char* str, char a) {
+    const char* pos = NULL;
+
+    for (;*str != '\0'; str++) {
+        if (*str == a) {
+            pos = str;
+        }
+    }
+
+    return pos;
+}
+
 Internal const char* get_extension(const char* path) {
     const char* ext = NULL;
     while (*path) {

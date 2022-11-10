@@ -41,7 +41,7 @@ Internal int is_dir_error(void) {
 int main(int argc, char* argv[]) {
     printf("Starting compiler\n");
 
-    tests();
+    //tests();
 
     const char* path = NULL;
     if (argc == 2) {
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
                 BUF_PRINTF(filepath, "/");
             }
 
-            char* out_filepath = xcalloc(pathlen + 1 + (ext - de->d_name) + strlen(".xml") + 1, sizeof(char));
+            char* out_filepath = xcalloc(pathlen + 1 + (ext - de->d_name) + 1 + strlen("xml") + 1, sizeof(char));
             strcpy(out_filepath, filepath);
 
             BUF_PRINTF(filepath, de->d_name);
@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
             lex(filestream);
 
             //TODO: change output filename to `filenameT.xml`
-            strcat(out_filepath, "T");
-            strncat(out_filepath, de->d_name, ext - de->d_name);
+            strncat(out_filepath, de->d_name, ext - de->d_name - 1);
+            strcat(out_filepath, "TT.");
             strcat(out_filepath, "xml");
             printf("filename: %s\n", out_filepath);
 
@@ -124,7 +124,16 @@ int main(int argc, char* argv[]) {
 
         const char* filestream = read_file(path);
         printf("%s", filestream);
+        lex(filestream);
 
-        //while (is_token_eof);
+        char* out_filepath = xcalloc(ext - path + 1 + strlen("xml") + 1, sizeof(char));
+        strncpy(out_filepath, path, ext - path - 1);
+        strcat(out_filepath, "TT.");
+        strcat(out_filepath, "xml");
+        printf("filename: %s\n", out_filepath);
+        write_file(out_filepath, file_buf, BUF_LEN(file_buf));
+
+        free(out_filepath);
+        BUF_FREE(file_buf);
     }
 }

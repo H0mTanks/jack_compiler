@@ -106,6 +106,7 @@ typedef enum TokenKind {
     TOKEN_LAST_CMP = TOKEN_GT,
 } TokenKind;
 
+//TODO: revert change of lt and gt from xml friendly versions
 const char* token_kind_names[] = {
     [TOKEN_EOF] = "EOF",
     [TOKEN_LBRACKET] = "[",
@@ -125,13 +126,13 @@ const char* token_kind_names[] = {
     [TOKEN_NAME] = "name",
     [TOKEN_MUL] = "*",
     [TOKEN_DIV] = "/",
-    [TOKEN_AND] = "&",
+    [TOKEN_AND] = "&amp;",
     [TOKEN_ADD] = "+",
     [TOKEN_SUB] = "-",
     [TOKEN_OR] = "|",
     [TOKEN_EQ] = "=",
-    [TOKEN_LT] = "<",
-    [TOKEN_GT] = ">",
+    [TOKEN_LT] = "&lt;",
+    [TOKEN_GT] = "&gt;",
 };
 
 Internal const char* token_kind_name(TokenKind kind) {
@@ -256,6 +257,8 @@ Internal void scan_int() {
     token.kind = TOKEN_INT;
     token.int_val = val;
 }
+
+Internal void xml_token();
 
 Internal void next_token(void) {
 repeat:
@@ -423,6 +426,7 @@ repeat:
     }
     token.end = stream;
 
+    xml_token();
     // printf("str: %s\n", token_info());
 }
 
@@ -443,6 +447,14 @@ Internal bool is_token(TokenKind kind) {
     return token.kind == kind;
 }
 
+Internal bool is_token_symbol() {
+    if ((token.kind >= TOKEN_LBRACKET && token.kind <= TOKEN_NOT) || (token.kind >= TOKEN_FIRST_MUL && token.kind <= TOKEN_LAST_CMP)) {
+        return true;
+    }
+
+    return false;
+}
+
 Internal bool match_token(TokenKind kind) {
     if (is_token(kind)) {
         next_token();
@@ -461,6 +473,32 @@ Internal bool expect_token(TokenKind kind) {
     else {
         fatal_syntax_error("expected token %s, got %s", token_kind_name(kind), token_info());
         return false;
+    }
+}
+
+Internal void print_xml(const char* tag, const char* name) {
+    BUF_PRINTF(file_buf, "<%s> %s </%s>\n", tag, name, tag);
+}
+
+Internal void print_xml_int(const char* tag, i32 int_val) {
+    BUF_PRINTF(file_buf, "<%s> %d </%s>\n", tag, int_val, tag);
+}
+
+Internal void xml_token() {
+    if (is_token(TOKEN_KEYWORD)) {
+        print_xml("keyword", token.name);
+    }
+    else if (is_token(TOKEN_NAME)) {
+        print_xml("identifier", token.name);
+    }
+    else if (is_token_symbol()) {
+        print_xml("symbol", token_kind_name(token.kind));
+    }
+    else if (is_token(TOKEN_STR)) {
+        print_xml("stringConstant", token.str_val);
+    }
+    else if (is_token(TOKEN_INT)) {
+        print_xml_int("integerConstant", token.int_val);
     }
 }
 
@@ -533,10 +571,12 @@ Internal void lex_tests(void) {
 #undef assert_token_eof
 
 Internal void lex(const char* filestream) {
+    init_keywords();
+
     BUF_PRINTF(file_buf, "<tokens>\n");
     init_stream(NULL, filestream);
     while (!is_token_eof()) {
         next_token();
     }
-    BUF_PRINTF(file_buf, "</tokens>");
+    BUF_PRINTF(file_buf, "</tokens>\n");
 }
