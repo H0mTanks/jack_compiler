@@ -472,7 +472,7 @@ Internal bool expect_token(TokenKind kind) {
     }
     else {
         fatal_syntax_error("expected token %s, got %s", token_kind_name(kind), token_info());
-        return false;
+        // return false;
     }
 }
 

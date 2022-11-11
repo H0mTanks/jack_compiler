@@ -1,3 +1,11 @@
+<keyword> class </keyword>
+<identifier> Test </identifier>
+<symbol> { </symbol>
+<keyword> field </keyword>
+<keyword> int </keyword>
+<identifier> a </identifier>
+<symbol> ; </symbol>
+<symbol> } </symbol>
 <tokens>
 <keyword> class </keyword>
 <identifier> Main </identifier>

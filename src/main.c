@@ -13,11 +13,16 @@
 #include "types.h"
 #include "common.c"
 #include "lex.c"
+#include "ast.h"
+#include "ast.c"
+#include "parse.c"
 
 
 Internal void tests(void) {
-    common_tests();
-    lex_tests();
+    init_keywords();
+    //common_tests();
+    //lex_tests();
+    parse_tests();
     printf("tests complete\n");
 }
 
@@ -41,7 +46,7 @@ Internal int is_dir_error(void) {
 int main(int argc, char* argv[]) {
     printf("Starting compiler\n");
 
-    //tests();
+    tests();
 
     const char* path = NULL;
     if (argc == 2) {
