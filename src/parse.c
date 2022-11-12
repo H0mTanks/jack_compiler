@@ -21,6 +21,13 @@ Internal Type* parse_type() {
     return type_new(kind, type_name);
 }
 
+const char* parse_name() {
+    const char* name = token.name;
+    expect_token(TOKEN_NAME);
+
+    return name;
+}
+
 Internal ClassDecl* parse_class() {
     const char* class_name = token.name;
     expect_token(TOKEN_NAME);
@@ -30,20 +37,20 @@ Internal ClassDecl* parse_class() {
     VarDecl* vars = NULL;
     size_t num_vars = 0;
     while (token.name == static_keyword || token.name == field_keyword) {
-        VarDecl var_decl = { 0 };
-        var_decl.var_type = token.name == static_keyword ? VAR_STATIC : VAR_FIELD;
+        VarType var_type = token.name == static_keyword ? VAR_STATIC : VAR_FIELD;
         expect_token(TOKEN_KEYWORD);
+        Type* type = parse_type();
+        const char* name = parse_name();
 
-        var_decl.type = parse_type();
-
-        var_decl.name = token.name;
-        expect_token(TOKEN_NAME);
-
-        BUF_PUSH(vars, var_decl);
+        BUF_PUSH(vars, (VarDecl) { var_type, type, name });
         num_vars++;
-    }
+        while (match_token(TOKEN_COMMA)) {
+            BUF_PUSH(vars, (VarDecl) { var_type, type, parse_name() });
+            num_vars++;
+        }
 
-    expect_token(TOKEN_SEMICOLON);
+        expect_token(TOKEN_SEMICOLON);
+    }
 
     expect_token(TOKEN_RBRACE);
 
@@ -51,7 +58,7 @@ Internal ClassDecl* parse_class() {
 }
 
 Internal void parse_tests() {
-    init_stream("parse_tests", "class Test { field int a; }");
+    init_stream("parse_tests", "class\n Test {\n field int a, c, d;\n static char b;\n }\n");
     match_token(TOKEN_KEYWORD);
     ClassDecl* c = parse_class();
 }
