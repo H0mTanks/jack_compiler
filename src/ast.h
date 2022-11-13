@@ -1,3 +1,5 @@
+#pragma once
+
 typedef struct Expr Expr;
 typedef struct Stmt Stmt;
 typedef struct Decl Decl;

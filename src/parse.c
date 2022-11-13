@@ -1,5 +1,3 @@
-Internal char* parse_buf = NULL;
-
 Internal Type* parse_type() {
     TypeKind kind;
     if (token.name == int_keyword) {
@@ -12,7 +10,7 @@ Internal Type* parse_type() {
         kind = TYPE_BOOLEAN;
     }
     else {
-        fatal_syntax_error("Unidentified typename: %s", token.name);
+        kind = TYPE_CLASSNAME;
     }
     const char* type_name = token.name;
 
@@ -40,9 +38,8 @@ Internal ClassDecl* parse_class() {
         VarType var_type = token.name == static_keyword ? VAR_STATIC : VAR_FIELD;
         expect_token(TOKEN_KEYWORD);
         Type* type = parse_type();
-        const char* name = parse_name();
 
-        BUF_PUSH(vars, (VarDecl) { var_type, type, name });
+        BUF_PUSH(vars, (VarDecl) { var_type, type, parse_name() });
         num_vars++;
         while (match_token(TOKEN_COMMA)) {
             BUF_PUSH(vars, (VarDecl) { var_type, type, parse_name() });
@@ -61,4 +58,6 @@ Internal void parse_tests() {
     init_stream("parse_tests", "class\n Test {\n field int a, c, d;\n static char b;\n }\n");
     match_token(TOKEN_KEYWORD);
     ClassDecl* c = parse_class();
+    print_class(c);
+    flush_parse();
 }

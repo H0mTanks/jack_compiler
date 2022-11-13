@@ -476,29 +476,29 @@ Internal bool expect_token(TokenKind kind) {
     }
 }
 
-Internal void print_xml(const char* tag, const char* name) {
+Internal void xml(const char* tag, const char* name) {
     BUF_PRINTF(file_buf, "<%s> %s </%s>\n", tag, name, tag);
 }
 
-Internal void print_xml_int(const char* tag, i32 int_val) {
+Internal void xml_int(const char* tag, i32 int_val) {
     BUF_PRINTF(file_buf, "<%s> %d </%s>\n", tag, int_val, tag);
 }
 
 Internal void xml_token() {
     if (is_token(TOKEN_KEYWORD)) {
-        print_xml("keyword", token.name);
+        xml("keyword", token.name);
     }
     else if (is_token(TOKEN_NAME)) {
-        print_xml("identifier", token.name);
+        xml("identifier", token.name);
     }
     else if (is_token_symbol()) {
-        print_xml("symbol", token_kind_name(token.kind));
+        xml("symbol", token_kind_name(token.kind));
     }
     else if (is_token(TOKEN_STR)) {
-        print_xml("stringConstant", token.str_val);
+        xml("stringConstant", token.str_val);
     }
     else if (is_token(TOKEN_INT)) {
-        print_xml_int("integerConstant", token.int_val);
+        xml_int("integerConstant", token.int_val);
     }
 }
 
