@@ -118,13 +118,6 @@ typedef struct Stmt {
     };
 } Stmt;
 
-
-typedef enum SubroutineType {
-    SUB_CONSTRUCTOR,
-    SUB_FUNCTION,
-    SUB_METHOD,
-} SubroutineType;
-
 typedef enum VarType {
     VAR_NONE,
     VAR_STATIC,
@@ -132,29 +125,36 @@ typedef enum VarType {
 } VarType;
 
 typedef struct VarDecl {
-    VarType var_type;
     Type* type;
     const char* name;
 } VarDecl;
 
-typedef struct FuncParam {
-    SrcPos pos;
-    const char* name;
+typedef struct ClassVarDecl {
+    VarType var_type;
     Type* type;
-} FuncParam;
+    const char* name;
+} ClassVarDecl;
+
+typedef enum SubroutineType {
+    SUB_CONSTRUCTOR,
+    SUB_METHOD,
+    SUB_FUNCTION,
+} SubroutineType;
 
 typedef struct Subroutine {
     SubroutineType sub_type;
-    FuncParam* params;
+    const char* name;
+    VarDecl* params;
     size_t num_params;
     Type* ret_type;
     VarDecl* vars;
+    size_t num_vars;
     StmtList block;
 } Subroutine;
 
 typedef struct ClassDecl {
     const char* name;
-    VarDecl* vars;
+    ClassVarDecl* vars;
     size_t num_vars;
     Subroutine* subs;
     size_t num_subs;

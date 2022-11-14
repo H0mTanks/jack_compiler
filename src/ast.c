@@ -29,7 +29,7 @@ Type* type_new(TypeKind kind, const char* name) {
     return t;
 }
 
-ClassDecl* class_new(const char* name, VarDecl* vars, size_t num_vars, Subroutine* subs, size_t num_subs) {
+ClassDecl* class_new(const char* name, ClassVarDecl* vars, size_t num_vars, Subroutine* subs, size_t num_subs) {
     ClassDecl* c = ast_alloc(sizeof(ClassDecl));
     c->name = name;
     c->vars = ast_rep(vars, num_vars * sizeof(*vars));
